@@ -34,6 +34,7 @@
 
 
 
+
 ---
 
 ## ✨ Why this exists
@@ -62,6 +63,13 @@ node src/cli.js --verify-only     # every key in keys.txt is re-tested with a re
 ## 🤖 Models — all 4 of them
 
 The catalogue is **group-bound**: a fresh account lands in `vip`, which has channels for nothing — the tool binds each token to a live group (`deepseek`, `gemini`, `Grok`, `kiro`, `claude max`) before testing. Verified live ids: `deepseek-v4.1-flash`, `grok-4.5`, `claude-sonnet-5`, `gemini-3.8-flash`. `GET /v1/models` is served per token group.
+
+|Model|✓|
+|---|---|
+|`deepseek-v4.1-flash`|✓|
+|`grok-4.5`|✓|
+|`claude-sonnet-5`|✓|
+|`gemini-3.8-flash`|✓|
 
 ## 🧪 How to use the API
 

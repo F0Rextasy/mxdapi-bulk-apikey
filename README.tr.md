@@ -13,7 +13,7 @@
 
 > **Turbo önerilir (5 worker); daha fazlası zayıf bilgisayarda yük/ban riski.**
 
-**Otomatik oluşturulan API anahtarlarıyla toplu MXDAPI (模型岛) hesabı oluşturma — OpenAI uyumlu çıkarım + 9Router bağlayıcısı.**
+**MXDAPI (模型岛) hesaplarını otomatik oluşturulan API anahtarlarıyla toplu oluşturun — OpenAI uyumlu çıkarım + 9Router bağlayıcısı.**
 
 [![Node](https://img.shields.io/badge/Node-%E2%89%A518-3DA639?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org)
 [![Dependencies](https://img.shields.io/badge/dependencies-0-blue?style=for-the-badge)](#)
@@ -32,46 +32,49 @@
 
 </div>
 
-<div align="center">
 
-**İngilizce** · [Türkçe](README.tr.md) · [中文](README.cn.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Español](README.es.md) · [Français](README.fr.md) · [Deutsch](README.de.md) · [Русский](README.ru.md) · [Português](README.pt.md)
-
-</div>
 
 
 
 ---
 
-## ✨ Bu neden var?
+## ✨ Bu neden var
 
-MXDAPI (模型岛), basit bir **e-posta koduyla kayıt** özelliğine (Turnstile devre dışı, parola ile kayıt açık), **¥1 kayıt kredisine** (“注册送1刀”; ayrıca davet edilen her arkadaş için ¥3) ve grup başına model kataloglarına sahip yeni bir API panelidir. Kullanışlı birim *anahtar başına bir hesap*tır ve bu araç bunu, **her satırı canlı bir sohbet çağrısından geçmiş** bir `keys.txt` dosyasına dönüştürür.
+MXDAPI (模型岛), basit bir **e-posta kodu ile kayıt** (Turnstile devre dışı, şifreli kayıt açık), **¥1** kayıt kredisi ("注册送1刀", ayrıca davet edilen her arkadaş için ¥3) ve gruba özel model katalogları sunan bir New API panelidir. Kullanışlı birim *anahtar başına bir hesap*tır ve bu araç bunu, **her satırı canlı bir sohbet çağrısından geçmiş** bir `keys.txt` dosyasına dönüştürür.
 
-## 🎁 Ücretsiz katman — ne kadar alırsınız?
+## 🎁 Ücretsiz katman — ne kadar alırsınız
 
-**Her yeni hesap kayıt kredisi alır** — kart yok, captcha yok.
+**Her yeni hesap bir kayıt kredisi alır** — kart yok, captcha yok.
 
 | Ne | Değer |
 | --- | --- |
 | Kayıt kredisi | **¥1** (`注册送1刀`) |
 | Davet bonusları | Davet edene ¥3 / davet edilene ¥2 (panel duyurusuna göre) |
-| Kart gerekli mi? | **Hayır** |
+| Kart gerekli mi | **Hayır** |
 | Günlük giriş | bu panelde etkin değil |
 | Kayıt | e-posta kodu (noktasız gmail geçer; **takma adlar reddedilir**) |
-| Ölçeklenen birim | **bir hesap = bir anahtar** → `--count N` gerçekten “N ücretsiz hesap” demektir |
+| Ölçeklenen birim | **bir hesap = bir anahtar** → `--count N` aslında "N ücretsiz hesap" demektir |
 
-> 💡 Ücretsiz katman MXDAPI (模型岛) tarafından belirlenir ve değişebilir. Güncel sayıları [mxdapi.com](https://mxdapi.com) adresinden kontrol edin — aracın kendi kontrolü karar versin:
+> 💡 Ücretsiz katman MXDAPI (模型岛) tarafından belirlenir ve değişebilir. Güncel sayıları [mxdapi.com](https://mxdapi.com) adresinden kontrol edin — ve kararı aracın kendi kapısına bırakın:
 
 ```bash
-node src/cli.js --verify-only     # every key in keys.txt is re-tested with a real chat call
+node src/cli.js --verify-only     # keys.txt içindeki her anahtar gerçek bir sohbet çağrısıyla yeniden test edilir
 ```
 
-## 🤖 Modeller — 4'ünün tamamı
+## 🤖 Modeller — 4 tanesinin tamamı
 
-Katalog **gruba bağlıdır**: yeni bir hesap, hiçbir kanalın bulunmadığı `vip` grubuna gelir — araç, test etmeden önce her token'ı canlı bir gruba (`deepseek`, `gemini`, `Grok`, `kiro`, `claude max`) bağlar. Doğrulanmış canlı kimlikler: `deepseek-v4.1-flash`, `grok-4.5`, `claude-sonnet-5`, `gemini-3.8-flash`. `GET /v1/models`, token grubuna göre sunulur.
+Katalog **gruba bağlıdır**: yeni bir hesap `vip` grubuna düşer ve bu grupta hiçbir şey için kanal yoktur — araç, test etmeden önce her token'ı canlı bir gruba (`deepseek`, `gemini`, `Grok`, `kiro`, `claude max`) bağlar. Doğrulanmış canlı kimlikler: `deepseek-v4.1-flash`, `grok-4.5`, `claude-sonnet-5`, `gemini-3.8-flash`. `GET /v1/models` her token grubuna göre sunulur.
 
-## 🧪 API nasıl kullanılır?
+|Model|✓|
+|---|---|
+|`deepseek-v4.1-flash`|✓|
+|`grok-4.5`|✓|
+|`claude-sonnet-5`|✓|
+|`gemini-3.8-flash`|✓|
 
-Temel URL **`https://mxdapi.com/v1`**'dir — OpenAI uyumludur (New API paneli); dolayısıyla OpenAI ile konuşabilen her şey çalışır.
+## 🧪 API'yi kullanma
+
+Temel URL **`https://mxdapi.com/v1`** — OpenAI uyumlu (New API paneli), yani OpenAI konuşan her şey çalışır.
 
 ```bash
 curl https://mxdapi.com/v1/chat/completions \
@@ -80,7 +83,7 @@ curl https://mxdapi.com/v1/chat/completions \
   -d '{"model":"deepseek-v4.1-flash","messages":[{"role":"user","content":"hi"}],"max_tokens":8}'
 ```
 
-Temel URL'yi herhangi bir aracıya veya SDK'ya (Cursor, OpenCode, Kilo Code, …) ayarlayın ve yukarıdaki katalogdan herhangi bir model kimliğini seçin.
+Temel URL'yi herhangi bir ajan veya SDK'da (Cursor, OpenCode, Kilo Code, …) ayarlayın ve yukarıdaki katalogdan herhangi bir model kimliği seçin.
 
 ## 🛠 Hızlı başlangıç
 
@@ -97,22 +100,22 @@ node src/launcher.js        # interactive
 node src/cli.js --host=mxdapi.com --count 50
 ```
 
-`keys.txt`, **ancak canlı bir sohbet tamamlaması anahtarı kanıtladıktan sonra** yazılır.
+`keys.txt` **yalnızca** canlı bir sohbet tamamlaması anahtarı kanıtladıktan sonra yazılır.
 
 ### 🖱️ Başlatıcı
 
-Başlatıcı proxy listesini, sayıyı ve doğrulama modelini sorar; bunları `launcher.config.json` dosyasına kaydeder ve CLI'yi doğru bayraklarla çalıştırır.
+Başlatıcı proxy listesini, sayıyı ve doğrulama modelini sorar, bunları `launcher.config.json` içinde hatırlar ve CLI'yi doğru bayraklarla çalıştırır.
 
-## ✅ Çalıştığı doğrulandı — her anahtar test edilir
+## ✅ Doğrulanmış çalışıyor — her anahtar test edilir
 
 | Kontrol | Sonuç |
 | --- | --- |
-| `GET /api/verification?email=<gmail>` | **200** — 6 haneli bir kod gönderir (noktasız gmail geçer; takma adlar reddedilir) |
-| `POST /api/user/register` | **200** — hesap `vip` grubuna gelir |
+| `GET /api/verification?email=<gmail>` | **200** — 6 haneli hex kod gönderir (noktasız gmail geçer; takma adlar reddedilir) |
+| `POST /api/user/register` | **200** — hesap `vip` grubuna düşer |
 | `GET /api/user/groups` | **200** — model gruplarını listeler (`deepseek`, `gemini`, `Grok`, `kiro`, `claude max`, …) |
-| `POST /api/token/ {"group":"<group>"}` | **200** — token'ı canlı bir gruba bağlar (bu çatallamada yazma işlemleri için `x-requested-with: XMLHttpRequest` gerekir) |
-| `POST /v1/chat/completions` — yazılmadan önce **her** anahtar için çalıştırılır | Gerçek içerikle **200** |
-| sohbet kontrolünde başarısız olan bir anahtar | `keys.txt` dosyasına hiçbir zaman yazılmaz — hesap `accounts.json` içinde kurtarılabilir durumda kalır |
+| `POST /api/token/ {"group":"<group>"}` | **200** — token'ı canlı bir gruba bağlar (bu fork'ta yazma işlemleri `x-requested-with: XMLHttpRequest` gerektirir) |
+| `POST /v1/chat/completions` — yazılmadan önce **her** anahtar için çalıştırılır | **200** gerçek içerikle |
+| sohbet kontrolünde başarısız olan bir anahtar | `keys.txt` dosyasına asla yazılmaz — hesap `accounts.json` içinde kurtarılabilir kalır |
 
 İstediğiniz zaman yeniden kontrol edin:
 
@@ -120,7 +123,7 @@ Başlatıcı proxy listesini, sayıyı ve doğrulama modelini sorar; bunları `l
 node src/cli.js --verify-only
 ```
 
-## 🧭 Nasıl çalışır?
+## 🧭 Nasıl çalışır
 
 ```
 inbox (one address per account)                                  a fresh address per account
@@ -133,12 +136,12 @@ inbox (one address per account)                                  a fresh address
 
 | Adım | Çağrı | Notlar |
 | --- | --- | --- |
-| kod | send-code (e-posta) | noktasız gmail çalışır; takma adresler panel tarafından reddedilir |
-| kayıt | register | parola ile kayıt açıktır; Turnstile kapalıdır |
-| giriş | login | oturum çerezi (bu çatallama) |
-| token | `{"group":"deepseek"}` tarzı bağlamayla token oluşturma | canlı bir grup olmadan anahtar `503 分组 … 无可用渠道` yanıtı verir |
-| anahtar | token satırında / uç noktada gösterme | düz metin anahtar |
-| kontrol | `POST /v1/chat/completions` | `keys.txt` öncesinde canlı 200 gereklidir |
+| kod | send-code (e-posta) | noktasız gmail çalışır; takma ad adresleri panel tarafından reddedilir |
+| kayıt | register | şifreli kayıt açık; Turnstile kapalı |
+| giriş | login | oturum çerezi (bu fork) |
+| token | `{"group":"deepseek"}` tarzı bağlama ile token oluştur | canlı bir grup olmadan anahtar `503 分组 … 无可用渠道` yanıtı verir |
+| anahtar | token satırında / uç noktada göster | düz metin anahtar |
+| kontrol | `POST /v1/chat/completions` | `keys.txt` öncesinde canlı 200 gerekli |
 
 ## ⚙️ CLI seçenekleri
 
@@ -154,47 +157,47 @@ node src/cli.js --help
 
 ## 🛰️ Proxy arkasında
 
-Her istek havuzunuzdaki bir proxy satırı üzerinden çıkar; çalışmayan bir satır o denemeyi başarısız kılar ve araç devam eder. Panel, adres başına kod gönderimlerini hız sınırlar; bu nedenle çalışmayı aralıklı yürütün (hesaplar arasında yaklaşık 30–60 saniyelik bir ara yeterlidir).
+Her istek havuzunuzdan bir proxy satırı üzerinden çıkar; ölü bir satır o denemeyi başarısız kılar ve araç devam eder. Panel, kod gönderimlerini adres başına sınırlar, bu yüzden çalıştırmayı yavaşlatın (hesaplar arasında ~30–60 sn boşluk fazlasıyla yeterlidir).
 
 ## 📄 Dosyalar
 
 | Yol | İçerik |
 | --- | --- |
-| `keys.txt` | satır başına canlı olarak doğrulanmış bir anahtar — git tarafından yok sayılır |
-| `accounts.json` | hesap başına kullanıcı adı / parola / anahtar / sohbet durumu |
+| `keys.txt` | satır başına bir canlı doğrulanmış anahtar — git tarafından yok sayılır |
+| `accounts.json` | hesap başına kullanıcı adı / şifre / anahtar / sohbet durumu |
 | `proxies.txt` | çıkışlarınız, satır başına bir tane — git tarafından yok sayılır |
-| `outputs/` | çalışma durumu — git tarafından yok sayılır |
+| `outputs/` | çalıştırma durumu — git tarafından yok sayılır |
 
 ## 🔌 9Router'a bağlanma
 
-[9Router](https://9router.com), kendi kendine barındırılan, OpenAI uyumlu bir yönlendiricidir. Bu sağlayıcıyı bir kez kaydedin; her anahtar tek bir sağlayıcı düğümü altında bir bağlantıya dönüşür:
+[9Router](https://9router.com) kendi barındırdığınız, OpenAI uyumlu bir yönlendiricidir. Bu sağlayıcıyı bir kez kaydedin ve her anahtar tek bir sağlayıcı düğümü altında bir bağlantı haline gelir:
 
 ```bash
 node src/connect-9router.js
 ```
 
-Varsayılanlar: `--base http://localhost:20128`, `--password 123456`, `--name "MXDAPI"`, `--prefix mxdapi`, `--base-url https://mxdapi.com/v1`. Modeller daha sonra `mxdapi/<model id>` olarak sunulur ve tüm anahtarlar arasında yük dengelenir.
+Varsayılanlar: `--base http://localhost:20128`, `--password 123456`, `--name "MXDAPI"`, `--prefix mxdapi`, `--base-url https://mxdapi.com/v1`. Modeller daha sonra `mxdapi/<model id>` olarak sunulur ve her anahtar arasında yük dengelenir.
 
-## 🔑 Bir anahtar size ne sağlar?
+## 🔑 Bir anahtar size ne kazandırır
 
 | | |
 | --- | --- |
 | 🏢 Sağlayıcı | **MXDAPI (模型岛)** — [mxdapi.com](https://mxdapi.com) |
-| 🎁 Sağlayıcının sunduğu | anahtar başına bir hesap — e-posta koduyla kayıt, sohbet üzerinden doğrulanmış her anahtar |
-| 🔑 Bir anahtarın sağladığı | kendi hesabına bağlı bir API anahtarı: aşağıdaki uç noktadaki 4 model kimliği, planınızın limitleri dahilinde. Kota **hesapta** bulunur; bu nedenle bu araç anahtar başına bir hesap oluşturur |
-| 🌐 API biçimi | OpenAI uyumlu: `POST https://mxdapi.com/v1/chat/completions` |
+| 🎁 Sağlayıcının verdikleri | anahtar başına bir hesap — e-posta kodu ile kayıt, her anahtar sohbet ile doğrulanır |
+| 🔑 Bir anahtar size ne kazandırır | kendi hesabına kapsanmış bir API anahtarı: aşağıdaki uç noktada 4 model kimliği, planınızın limitlerinde. Kota **hesapta** yaşar, bu aracın anahtar başına bir hesap oluşturmasının nedeni tam olarak budur |
+| 🌐 API şekli | OpenAI uyumlu: `POST https://mxdapi.com/v1/chat/completions` |
 | 🔒 Verileriniz | yalnızca mxdapi.com ve yapılandırdığınız gelen kutusu arka ucuyla iletişim kurulur; anahtarlar makinenizde kalır |
 
 ## 🐞 Sorunlar
 
-Panel kayıt biçimini, grupları veya krediyi değiştirirse araç o adımda durur ve bunu bildirir. **[Bir sorun açın](../../issues)**; çalıştırdığınız komutu ve tam çıktıyı ekleyin. PR'lar memnuniyetle karşılanır.
+Panel kayıt şeklini, grupları veya krediyi değiştirirse, araç o adımda durur ve bunu bildirir. Çalıştırdığınız komut ve tam çıktıyla birlikte **[bir sorun açın](../../issues)**; PR'lar memnuniyetle karşılanır.
 
 ## 📄 Lisans
 
-MIT © 2026 — [LICENSE](LICENSE) dosyasına bakın.
+MIT © 2026 — bkz. [LICENSE](LICENSE).
 
 <div align="center">
 
-**[MIT](LICENSE)** © 2026 mxdapi-bulk-apikey katkıcıları
+**[MIT](LICENSE)** © 2026 mxdapi-bulk-apikey katkıda bulunanlar
 
 </div>

@@ -11,16 +11,18 @@
 
 # mxdapi-bulk-apikey
 
-**자동 생성된 API 키로 MXDAPI (模型岛) 계정을 대량 생성 — OpenAI 호환 추론 + 9Router 커넥터.**
+> **Turbo を推奨（5 worker）。それ以上は非力なマシンでは負荷・BAN のリスクあり。**
+
+**MXDAPI（模型岛）のアカウントを自動生成した API キー付きで一括作成 — OpenAI 互換の推論 + 9Router コネクタ。**
 
 [![Node](https://img.shields.io/badge/Node-%E2%89%A518-3DA639?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org)
-[![종속성](https://img.shields.io/badge/dependencies-0-blue?style=for-the-badge)](#)
-[![라이선스](https://img.shields.io/badge/license-MIT-6ea8fe?style=for-the-badge)](LICENSE)
-[![모델](https://img.shields.io/badge/models-4%20served-412991?style=for-the-badge)](https://mxdapi.com)
+[![Dependencies](https://img.shields.io/badge/dependencies-0-blue?style=for-the-badge)](#)
+[![License](https://img.shields.io/badge/license-MIT-6ea8fe?style=for-the-badge)](LICENSE)
+[![Models](https://img.shields.io/badge/models-4%20served-412991?style=for-the-badge)](https://mxdapi.com)
 [![9Router](https://img.shields.io/badge/9Router-connector-8B5CF6?style=for-the-badge)](#-connect-to-9router)
 [![X](https://img.shields.io/badge/X-%40bigbullapp-000000?style=for-the-badge&logo=x&logoColor=white)](https://x.com/bigbullapp)
 
-[🛠 빠른 시작](#-quick-start) · [🎁 무료 티어](#-free-tier--how-much-you-get) · [🤖 모델](#-models--all-4-of-them) · [🧪 API 사용](#-how-to-use-the-api) · [✅ 검증 완료](#-verified-working--every-key-is-tested) · [🧭 작동 방식](#-how-it-works) · [🔌 9Router](#-connect-to-9router) · [⚙️ 옵션](#️-cli-options) · [🛰️ 프록시](#️-behind-a-proxy) · [🐞 이슈](#-issues)
+[🛠 クイックスタート](#-quick-start) · [🎁 無料枠](#-free-tier--how-much-you-get) · [🤖 モデル](#-models--all-4-of-them) · [🧪 API の使い方](#-how-to-use-the-api) · [✅ 検証済み](#-verified-working--every-key-is-tested) · [🧭 仕組み](#-how-it-works) · [🔌 9Router](#-connect-to-9router) · [⚙️ オプション](#️-cli-options) · [🛰️ プロキシ](#️-behind-a-proxy) · [🐞 問題報告](#-issues)
 
 </div>
 
@@ -33,38 +35,46 @@
 
 
 
+
 ---
 
-## ✨ 이것이 필요한 이유
+## ✨ これが存在する理由
 
-MXDAPI (模型岛)는 간단한 **이메일 코드 가입**(Turnstile 비활성화, 비밀번호 등록 가능)을 제공하는 New API 패널로, 가입 크레딧 **¥1**(“注册送1刀”, 초대한 친구마다 ¥3 추가)과 그룹별 모델 카탈로그를 제공합니다. 유용한 단위는 *키 하나당 계정 하나*이며, 이 도구는 이를 **모든 줄이 실제 채팅 호출을 통과한** `keys.txt`로 변환합니다.
+MXDAPI（模型岛）は New API パネルで、シンプルな**メールコードによるサインアップ**（Turnstile 無効、パスワード登録は開放）を採用しており、サインアップ特典は **¥1**（「注册送1刀」、招待した友達ごとにさらに ¥3）、そしてグループごとのモデルカタログがあります。有用な単位は*キーごとに 1 アカウント*であり、このツールはそれを `keys.txt` に変えます。そこでは**すべての行が実際のチャット呼び出しを通過しています**。
 
-## 🎁 무료 티어 — 얼마나 받을 수 있나
+## 🎁 無料枠 — いくらもらえるか
 
-**모든 신규 계정은 가입 크레딧을 받습니다** — 카드도, 캡차도 필요 없습니다.
+**新しいアカウントにはすべてサインアップ特典が付きます** — カード不要、キャプチャなし。
 
-| 항목 | 값 |
+| 項目 | 値 |
 | --- | --- |
-| 가입 크레딧 | **¥1** (`注册送1刀`) |
-| 초대 보너스 | 초대한 사람 ¥3 / 초대받은 사람 ¥2 (패널 공지 기준) |
-| 카드 필요 여부 | **아니요** |
-| 일일 체크인 | 이 패널에서는 활성화되지 않음 |
-| 가입 | 이메일 코드 (점 없는 gmail은 통과; **별칭은 거부됨**) |
-| 확장되는 단위 | **계정 하나 = 키 하나** → `--count N`은 실제로 "무료 계정 N개" |
+| サインアップ特典 | **¥1**（`注册送1刀`） |
+| 招待ボーナス | 招待者に ¥3 / 被招待者に ¥2（パネルの告知による） |
+| カード要否 | **不要** |
+| 毎日のチェックイン | このパネルでは有効化されていません |
+| サインアップ | メールコード（ドットなし gmail は通過、**エイリアスは拒否されます**） |
+| スケールする単位 | **1 アカウント = 1 キー** → `--count N` は実質「N 個の無料アカウント」 |
 
-> 💡 무료 티어는 MXDAPI (模型岛)가 정하며 변경될 수 있습니다. [mxdapi.com](https://mxdapi.com)에서 최신 수치를 확인하고 — 도구 자체의 게이트가 결정하도록 하세요:
+> 💡 無料枠は MXDAPI（模型岛）が設定するもので、変更される可能性があります。最新の数値は [mxdapi.com](https://mxdapi.com) で確認してください — そしてツール自身のゲートに判断を委ねましょう:
 
 ```bash
-node src/cli.js --verify-only     # every key in keys.txt is re-tested with a real chat call
+node src/cli.js --verify-only     # keys.txt のすべてのキーが実際のチャット呼び出しで再テストされます
 ```
 
-## 🤖 모델 — 총 4개
+## 🤖 モデル — 全 4 種類
 
-카탈로그는 **그룹에绑定됩니다**: 새 계정은 채널이 없는 `vip`에 들어가므로, 도구는 테스트 전에 각 토큰을 실제 그룹(`deepseek`, `gemini`, `Grok`, `kiro`, `claude max`)에 바인딩합니다. 실제 검증된 ID: `deepseek-v4.1-flash`, `grok-4.5`, `claude-sonnet-5`, `gemini-3.8-flash`. `GET /v1/models`는 토큰 그룹별로 제공됩니다.
+カタログは**グループに紐づきます**: 新しいアカウントは `vip` に入り、そこにはチャネルが何もありません — ツールはテスト前に各トークンを稼働中のグループ（`deepseek`、`gemini`、`Grok`、`kiro`、`claude max`）にバインドします。検証済みのライブ ID: `deepseek-v4.1-flash`、`grok-4.5`、`claude-sonnet-5`、`gemini-3.8-flash`。`GET /v1/models` はトークングループごとに提供されます。
 
-## 🧪 API 사용 방법
+|モデル|✓|
+|---|---|
+|`deepseek-v4.1-flash`|✓|
+|`grok-4.5`|✓|
+|`claude-sonnet-5`|✓|
+|`gemini-3.8-flash`|✓|
 
-기본 URL은 **`https://mxdapi.com/v1`** — OpenAI 호환(New API 패널)이므로 OpenAI와 통신할 수 있는 모든 것이 작동합니다.
+## 🧪 API の使い方
+
+ベース URL は **`https://mxdapi.com/v1`** — OpenAI 互換（New API パネル）なので、OpenAI を扱えるものなら何でも動作します。
 
 ```bash
 curl https://mxdapi.com/v1/chat/completions \
@@ -73,9 +83,9 @@ curl https://mxdapi.com/v1/chat/completions \
   -d '{"model":"deepseek-v4.1-flash","messages":[{"role":"user","content":"hi"}],"max_tokens":8}'
 ```
 
-모든 에이전트 또는 SDK(Cursor, OpenCode, Kilo Code, …)에서 기본 URL을 설정하고 위 카탈로그의 모델 ID를 선택하세요.
+任意のエージェントや SDK（Cursor、OpenCode、Kilo Code など）でベース URL を設定し、上記のカタログから任意のモデル ID を選んでください。
 
-## 🛠 빠른 시작
+## 🛠 クイックスタート
 
 ```bash
 # clone or fork this repository, then:
@@ -90,30 +100,30 @@ node src/launcher.js        # interactive
 node src/cli.js --host=mxdapi.com --count 50
 ```
 
-`keys.txt`는 실제 채팅 완료를 통해 키가 검증된 **후에만** 작성됩니다.
+`keys.txt` は、実際のチャット補完がキーを証明した**後にのみ**書き込まれます。
 
-### 🖱️ 런처
+### 🖱️ ランチャー
 
-런처는 프록시 목록, 개수 및 검증 모델을 묻고 이를 `launcher.config.json`에 저장한 다음 올바른 플래그와 함께 CLI를 실행합니다.
+ランチャーはプロキシリスト、カウント、検証モデルを尋ね、それらを `launcher.config.json` に記憶し、適切なフラグで CLI を実行します。
 
-## ✅ 검증 완료 — 모든 키가 테스트됨
+## ✅ 動作検証済み — すべてのキーがテストされます
 
-| 검사 | 결과 |
+| チェック | 結果 |
 | --- | --- |
-| `GET /api/verification?email=<gmail>` | **200** — 6자리 16진수 코드를 전송 (점 없는 gmail은 통과; 별칭은 거부됨) |
-| `POST /api/user/register` | **200** — 계정이 `vip` 그룹에 들어감 |
-| `GET /api/user/groups` | **200** — 모델 그룹 목록(`deepseek`, `gemini`, `Grok`, `kiro`, `claude max`, …)을 표시 |
-| `POST /api/token/ {"group":"<group>"}` | **200** — 토큰을 실제 그룹에 바인딩 (이 포크에서는 쓰기 요청에 `x-requested-with: XMLHttpRequest`가 필요함) |
-| `POST /v1/chat/completions` — 기록되기 전에 **모든** 키에 대해 실행 | 실제 콘텐츠와 함께 **200** |
-| 채팅 검사를 통과하지 못한 키 | `keys.txt`에 기록되지 않음 — 계정은 `accounts.json`에서 복구 가능 |
+| `GET /api/verification?email=<gmail>` | **200** — 6 桁の 16 進コードを送信（ドットなし gmail は通過、エイリアスは拒否） |
+| `POST /api/user/register` | **200** — アカウントはグループ `vip` に入ります |
+| `GET /api/user/groups` | **200** — モデルグループを一覧表示（`deepseek`、`gemini`、`Grok`、`kiro`、`claude max` など） |
+| `POST /api/token/ {"group":"<group>"}` | **200** — トークンを稼働中のグループにバインド（このフォークでは書き込みに `x-requested-with: XMLHttpRequest` が必要） |
+| `POST /v1/chat/completions` — 書き込まれる前に**すべての**キーに対して実行 | 実際のコンテンツとともに **200** |
+| チャットチェックに失敗したキー | `keys.txt` には決して書き込まれません — アカウントは `accounts.json` で復元可能なままです |
 
-언제든 다시 검사할 수 있습니다:
+いつでも再チェックできます:
 
 ```bash
 node src/cli.js --verify-only
 ```
 
-## 🧭 작동 방식
+## 🧭 仕組み
 
 ```
 inbox (one address per account)                                  a fresh address per account
@@ -124,16 +134,16 @@ inbox (one address per account)                                  a fresh address
    └─▶ live proof: POST https://mxdapi.com/v1/chat/completions → real content = the key is live
 ```
 
-| 단계 | 호출 | 참고 |
+| ステップ | 呼び出し | 備考 |
 | --- | --- | --- |
-| 코드 | send-code (e-mail) | 점 없는 gmail은 작동함; 별칭 주소는 패널에서 거부됨 |
-| 가입 | register | 비밀번호 등록 가능; Turnstile 비활성화 |
-| 로그인 | login | 세션 쿠키 (이 포크) |
-| 토큰 | `{"group":"deepseek"}` 형식의 바인딩으로 토큰 생성 | 실제 그룹이 없으면 키가 `503 分组 … 无可用渠道`로 응답함 |
-| 키 | 토큰 행 / 엔드포인트에서 공개 | 평문 키 |
-| 확인 | `POST /v1/chat/completions` | `keys.txt` 전에 실제 200 응답 필요 |
+| コード | コード送信（メール） | ドットなし gmail は動作、エイリアスアドレスはパネルに拒否されます |
+| サインアップ | 登録 | パスワード登録は開放、Turnstile はオフ |
+| サインイン | ログイン | セッション Cookie（このフォーク） |
+| トークン | `{"group":"deepseek"}` 形式のバインドでトークンを作成 | 稼働中のグループがないと、キーは `503 分组 … 无可用渠道` を返します |
+| キー | トークン行 / エンドポイントで表示 | 平文キー |
+| チェック | `POST /v1/chat/completions` | `keys.txt` の前にライブ 200 が必須 |
 
-## ⚙️ CLI 옵션
+## ⚙️ CLI オプション
 
 ```bash
 node src/cli.js --host=mxdapi.com --count N   # mint (default 50)
@@ -141,53 +151,53 @@ node src/cli.js --verify-only                 # re-check every key in keys.txt
 node src/cli.js --help
 ```
 
-| 환경 변수 | 기본값 | 의미 |
+| 環境変数 | デフォルト | 意味 |
 | --- | --- | --- |
-| `MXDAPI_PROXIES` | `proxies.txt` | 풀 파일, 한 줄에 프록시 하나 |
+| `MXDAPI_PROXIES` | `proxies.txt` | プールファイル、1 行に 1 プロキシ |
 
-## 🛰️ 프록시 사용
+## 🛰️ プロキシの背後で
 
-모든 요청은 풀의 프록시 한 줄을 통해 전송됩니다. 죽은 줄은 해당 시도를 실패시키고 도구는 다음으로 넘어갑니다. 패널은 주소별 코드 전송을 속도 제한하므로 실행 속도를 조절하세요(계정 간 약 30~60초 간격이면 충분합니다).
+すべてのリクエストはプールからのプロキシ行を通って出ていきます。死んだ行はその試行を失敗させ、ツールは次に進みます。パネルはアドレスごとにコード送信をレート制限するので、実行のペースを調整してください（アカウント間に約 30〜60 秒の間隔で十分です）。
 
-## 📄 파일
+## 📄 ファイル
 
-| 경로 | 내용 |
+| パス | 内容 |
 | --- | --- |
-| `keys.txt` | 줄마다 실제 검증된 키 하나 — git에서 무시됨 |
-| `accounts.json` | 계정별 사용자 이름 / 비밀번호 / 키 / 채팅 상태 |
-| `proxies.txt` | 사용할 출구, 한 줄에 하나 — git에서 무시됨 |
-| `outputs/` | 실행 상태 — git에서 무시됨 |
+| `keys.txt` | 1 行に 1 つのライブ検証済みキー — git 無視 |
+| `accounts.json` | アカウントごとのユーザー名 / パスワード / キー / チャットステータス |
+| `proxies.txt` | あなたの出口、1 行に 1 つ — git 無視 |
+| `outputs/` | 実行状態 — git 無視 |
 
-## 🔌 9Router 연결
+## 🔌 9Router に接続
 
-[9Router](https://9router.com)는 자체 호스팅되는 OpenAI 호환 라우터입니다. 이 공급자를 한 번 등록하면 모든 키가 하나의 공급자 노드 아래 연결로 등록됩니다:
+[9Router](https://9router.com) はセルフホスト型の OpenAI 互換ルーターです。このプロバイダを一度登録すれば、すべてのキーが 1 つのプロバイダノードの下の接続になります:
 
 ```bash
 node src/connect-9router.js
 ```
 
-기본값: `--base http://localhost:20128`, `--password 123456`, `--name "MXDAPI"`, `--prefix mxdapi`, `--base-url https://mxdapi.com/v1`. 그러면 모델이 `mxdapi/<model id>`로 제공되며 모든 키에 대해 로드 밸런싱됩니다.
+デフォルト: `--base http://localhost:20128`、`--password 123456`、`--name "MXDAPI"`、`--prefix mxdapi`、`--base-url https://mxdapi.com/v1`。モデルは `mxdapi/<model id>` として提供され、すべてのキー間で負荷分散されます。
 
-## 🔑 키 하나로 얻는 것
+## 🔑 1 つのキーで得られるもの
 
 | | |
 | --- | --- |
-| 🏢 공급자 | **MXDAPI (模型岛)** — [mxdapi.com](https://mxdapi.com) |
-| 🎁 공급자가 제공하는 것 | 키 하나당 계정 하나 — 이메일 코드 가입, 모든 키 채팅 검증 완료 |
-| 🔑 키 하나로 얻는 것 | 자체 계정에 한정된 API 키 하나: 아래 엔드포인트의 4개 모델 ID를 요금제 한도 내에서 사용. 할당량은 **계정**에 귀속되며, 이것이 바로 이 도구가 키 하나당 계정 하나를 생성하는 이유입니다 |
-| 🌐 API 형식 | OpenAI 호환: `POST https://mxdapi.com/v1/chat/completions` |
-| 🔒 사용자 데이터 | mxdapi.com과 사용자가 설정한 inbox 백엔드에만 연결하며, 키는 사용자의 컴퓨터에 보관됨 |
+| 🏢 プロバイダ | **MXDAPI（模型岛）** — [mxdapi.com](https://mxdapi.com) |
+| 🎁 プロバイダが提供するもの | キーごとに 1 アカウント — メールコードサインアップ、すべてのキーがチャット検証済み |
+| 🔑 1 つのキーで得られるもの | 自身のアカウントにスコープされた 1 つの API キー: 下記エンドポイントの 4 つのモデル ID を、あなたのプランの制限内で。クォータは**アカウント**に存在し、まさにそれがこのツールがキーごとに 1 アカウントを作成する理由です |
+| 🌐 API 形式 | OpenAI 互換: `POST https://mxdapi.com/v1/chat/completions` |
+| 🔒 あなたのデータ | 接触するのは mxdapi.com と、あなたが設定した inbox バックエンドのみ。キーはあなたのマシンに留まります |
 
-## 🐞 이슈
+## 🐞 問題報告
 
-패널이 가입 방식, 그룹 또는 크레딧을 변경하면 도구는 해당 단계에서 중지하고 이를 알립니다. 실행한 명령과 정확한 출력을 함께 **[이슈를 등록](../../issues)**해 주세요. PR도 환영합니다.
+パネルがサインアップの形、グループ、特典を変更した場合、ツールはそのステップで停止し、その旨を伝えます。実行したコマンドと正確な出力を添えて **[issue を作成してください](../../issues)**。PR も歓迎します。
 
-## 📄 라이선스
+## 📄 ライセンス
 
-MIT © 2026 — [LICENSE](LICENSE)를 참조하세요.
+MIT © 2026 — [LICENSE](LICENSE) を参照。
 
 <div align="center">
 
-**[MIT](LICENSE)** © 2026 mxdapi-bulk-apikey 기여자
+**[MIT](LICENSE)** © 2026 mxdapi-bulk-apikey contributors
 
 </div>
