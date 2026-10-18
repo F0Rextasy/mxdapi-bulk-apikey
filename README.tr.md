@@ -11,6 +11,8 @@
 
 # mxdapi-bulk-apikey
 
+> **Turbo önerilir (5 worker); daha fazlası zayıf bilgisayarda yük/ban riski.**
+
 **Otomatik oluşturulan API anahtarlarıyla toplu MXDAPI (模型岛) hesabı oluşturma — OpenAI uyumlu çıkarım + 9Router bağlayıcısı.**
 
 [![Node](https://img.shields.io/badge/Node-%E2%89%A518-3DA639?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org)

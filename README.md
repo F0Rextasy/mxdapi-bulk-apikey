@@ -11,6 +11,8 @@
 
 # mxdapi-bulk-apikey
 
+> **Turbo önerilir (5 worker); daha fazlası zayıf bilgisayarda yük/ban riski.**
+
 **Bulk-create MXDAPI (模型岛) accounts with auto-generated API keys — OpenAI-compatible inference + 9Router connector.**
 
 [![Node](https://img.shields.io/badge/Node-%E2%89%A518-3DA639?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org)

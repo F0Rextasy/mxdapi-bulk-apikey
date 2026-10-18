@@ -8,12 +8,29 @@ const path = require('path');
 const https = require('https');
 const { createAgent, parseProxy } = require('../../river-bulk-apikey/src/proxy');
 const emailnator = require('../cloudflare-wai/emailnator.js');
+const { presetArgv, resolvePreset } = require('./preset');
 
 const argv = process.argv.slice(2);
 const one = (n, d) => {
   const hit = argv.find((a) => a.startsWith(`--${n}=`));
   return hit ? hit.slice(n.length + 3) : d;
 };
+
+// Run shape (operator standard v3): `--preset` sets how many of the account's
+// plan steps (one key each) run at a time and the pace between them. An explicit
+// --conc/--gap wins, and with no --preset the plan runs serially as before.
+const PRESET = presetArgv(argv) || one('preset', null);
+const SHAPE = resolvePreset({
+  preset: PRESET,
+  conc: one('conc', null) != null ? parseInt(one('conc'), 10) : null,
+  gap: one('gap', null) != null ? parseInt(one('gap'), 10) : null,
+  defaultConc: 1,
+  defaultGap: 0,
+});
+const PLAN_CONC = Math.max(1, SHAPE.conc || 1);
+const GAP_MS = Math.max(0, Math.round((SHAPE.gap == null ? 0 : SHAPE.gap) * 1000));
+/** `user:pass@host` in an exit line is never printed (spec form: `user:***@host`). */
+const maskExit = (line) => String(line || 'direct').replace(/:[^:@/]+@/, ':***@');
 
 const HOST = one('host', 'mxdapi.com');
 const BASE = `https://${HOST}`;
@@ -23,6 +40,10 @@ const EXITS = (one('exits', 'http://127.0.0.1:40000') || '')
   .map((s) => s.trim())
   .filter(Boolean);
 const CODE_WAIT_MS = parseInt(one('code-wait', '300000'), 10);
+// One token per group (the account lands in `vip`, which has no channel for any
+// priced model); hoisted so the end-of-run line can count the plan.
+const PLAN = JSON.parse(one('plan', '[{"group":"","model":"' + MODEL + '"}]'));
+let liveKeys = 0;
 // Emailnator recycles gmail boxes, so a sibling agent's mail can land in this
 // inbox mid-flight; only a message whose sender/subject carries this panel's
 // own brand is allowed to supply the code.
@@ -195,7 +216,8 @@ function saveRec(rec) {
 }
 
 async function main() {
-  log(`mint start host=${HOST} model=${MODEL} exits=${EXITS.length}`);
+  log(`mint start host=${HOST} model=${MODEL} exits=${EXITS.length} plan=${PLAN.length} conc=${PLAN_CONC}`);
+  console.log(`… #1 başladı (${maskExit(currentExit)})`);
   const tag = one('tag', `gm14${Date.now().toString(36).slice(-5)}`) + (one('tag') ? '' : '');
   const pass = `Pw${randHex(5)}aB1`;
   const rec = { host: HOST, username: tag, password: pass, at: nowIso(), status: 'start', exit: currentExit };
@@ -258,62 +280,72 @@ async function main() {
   rec.group = self.json && self.json.data && self.json.data.group;
   log(`self quota=${rec.quota} group=${rec.group}`);
 
-  // The account lands in `vip`, which has no channel for any priced model, so a
-  // token bound to each group with real channels is what makes the key usable.
-  const plan = JSON.parse(one('plan', '[{"group":"","model":"' + MODEL + '"}]'));
+  // Run shape: PLAN_CONC steps at a time, GAP_MS between starts inside a worker;
+  // with no --preset both default to today's serial plan.
   const tokens = [];
-  for (const step of plan) {
-    const created = await req('/api/token/', {
-      method: 'POST',
-      headers: auth,
-      body: {
-        name: 'gm14_' + (step.group || 'own').replace(/\s+/g, '_'),
-        remain_quota: 0,
-        expired_time: -1,
-        unlimited_quota: true,
-        model_limits_enabled: false,
-        model_limits: '',
-        allow_ips: '',
-        group: step.group || '',
-      },
-    });
-    if (!created.json || created.json.success !== true) {
-      log(`token create group=${JSON.stringify(step.group)} ${created.status} ${String(created.text).slice(0, 140)}`);
-      continue;
+  let stepNo = 0;
+  const planWorker = async () => {
+    for (;;) {
+      const step = PLAN[stepNo++];
+      if (!step) return;
+      const stepIndex = stepNo;
+      if (stepIndex > 1 && GAP_MS) await sleep(GAP_MS);
+      const created = await req('/api/token/', {
+        method: 'POST',
+        headers: auth,
+        body: {
+          name: 'gm14_' + (step.group || 'own').replace(/\s+/g, '_'),
+          remain_quota: 0,
+          expired_time: -1,
+          unlimited_quota: true,
+          model_limits_enabled: false,
+          model_limits: '',
+          allow_ips: '',
+          group: step.group || '',
+        },
+      });
+      if (!created.json || created.json.success !== true) {
+        log(`token create group=${JSON.stringify(step.group)} ${created.status} ${String(created.text).slice(0, 140)}`);
+        continue;
+      }
+      const list = await req('/api/token/?p=0&size=50', { headers: auth });
+      const items = (list.json && list.json.data && list.json.data.items) || [];
+      const item = items.find((t) => (t.group || '') === (step.group || ''));
+      if (!item) {
+        log(`token list miss group=${step.group}`);
+        continue;
+      }
+      const reveal = await req(`/api/token/${item.id}/key`, { method: 'POST', headers: auth });
+      const key = reveal.json && reveal.json.data && reveal.json.data.key;
+      if (!key) {
+        log(`reveal ${reveal.status} ${String(reveal.text).slice(0, 140)}`);
+        continue;
+      }
+      const chat = await req('/v1/chat/completions', {
+        method: 'POST',
+        timeoutMs: 150000,
+        headers: { authorization: `Bearer ${key}` },
+        body: { model: step.model, messages: [{ role: 'user', content: 'Reply OK' }], max_tokens: 256, stream: false },
+      });
+      const msg = chat.json && chat.json.choices && chat.json.choices[0] && chat.json.choices[0].message;
+      const txt = msg && String(msg.content || '').trim();
+      log(`chat group=${JSON.stringify(step.group)} ${step.model} -> ${chat.status} ${txt ? JSON.stringify(txt.slice(0, 30)) : String(chat.text).slice(0, 160)}`);
+      const row = { group: step.group || '(own)', model: step.model, key, status: chat.status, content: txt ? txt.slice(0, 40) : '', error: txt ? null : String(chat.text).slice(0, 240) };
+      tokens.push(row);
+      if (chat.status === 200 && txt) {
+        fs.appendFileSync(KEYS, key + '\n');
+        log(`SAVED ${step.group || 'own'} ${key.slice(0, 12)}…`);
+        liveKeys++;
+        console.log(`✓ #1 KEY ALINDI: ${key.slice(0, 22)}… [${liveKeys} ok / ${stepNo} deneme]`);
+        rec.status = 'chat-200';
+        rec.model = (chat.json && chat.json.model) || step.model;
+        rec.content = txt.slice(0, 40);
+        rec.key = key;
+      }
     }
-    const list = await req('/api/token/?p=0&size=50', { headers: auth });
-    const items = (list.json && list.json.data && list.json.data.items) || [];
-    const item = items.find((t) => (t.group || '') === (step.group || ''));
-    if (!item) {
-      log(`token list miss group=${step.group}`);
-      continue;
-    }
-    const reveal = await req(`/api/token/${item.id}/key`, { method: 'POST', headers: auth });
-    const key = reveal.json && reveal.json.data && reveal.json.data.key;
-    if (!key) {
-      log(`reveal ${reveal.status} ${String(reveal.text).slice(0, 140)}`);
-      continue;
-    }
-    const chat = await req('/v1/chat/completions', {
-      method: 'POST',
-      timeoutMs: 150000,
-      headers: { authorization: `Bearer ${key}` },
-      body: { model: step.model, messages: [{ role: 'user', content: 'Reply OK' }], max_tokens: 256, stream: false },
-    });
-    const msg = chat.json && chat.json.choices && chat.json.choices[0] && chat.json.choices[0].message;
-    const txt = msg && String(msg.content || '').trim();
-    log(`chat group=${JSON.stringify(step.group)} ${step.model} -> ${chat.status} ${txt ? JSON.stringify(txt.slice(0, 30)) : String(chat.text).slice(0, 160)}`);
-    const row = { group: step.group || '(own)', model: step.model, key, status: chat.status, content: txt ? txt.slice(0, 40) : '', error: txt ? null : String(chat.text).slice(0, 240) };
-    tokens.push(row);
-    if (chat.status === 200 && txt) {
-      fs.appendFileSync(KEYS, key + '\n');
-      log(`SAVED ${step.group || 'own'} ${key.slice(0, 12)}…`);
-      rec.status = 'chat-200';
-      rec.model = (chat.json && chat.json.model) || step.model;
-      rec.content = txt.slice(0, 40);
-      rec.key = key;
-    }
-  }
+  };
+  await Promise.all(Array.from({ length: Math.min(PLAN_CONC, PLAN.length) }, planWorker));
+  rec.plan_conc = PLAN_CONC;
   rec.tokens = tokens;
   saveRec(rec);
   log(`done status=${rec.status} quota=${rec.quota} live=${tokens.filter((t) => t.status === 200).length}/${tokens.length}`);
@@ -323,8 +355,11 @@ async function main() {
 main().then(
   (r) => {
     console.log('RESULT ' + JSON.stringify({ host: r.host, status: r.status, quota: r.quota, group: r.group, model: r.model, key: r.key, tries: r.chat_tries }));
+    console.log(`MXDAPI ${liveKeys}/${PLAN.length} OK`);
   },
   (e) => {
+    console.error(`✗ #1 key yok: ${String((e && e.message) || e).slice(0, 200)}`);
+    console.log(`MXDAPI ${liveKeys}/${PLAN.length} OK`);
     console.error('FAIL ' + e.message);
     process.exit(1);
   }
