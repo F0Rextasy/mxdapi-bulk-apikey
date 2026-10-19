@@ -6,8 +6,8 @@
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
-const { createAgent, parseProxy } = require('../../river-bulk-apikey/src/proxy');
-const emailnator = require('../cloudflare-wai/emailnator.js');
+const { createAgent, parseProxy } = require('./vendor/proxy.js');
+const emailnator = require('./vendor/emailnator.js');
 const { presetArgv, resolvePreset } = require('./preset');
 
 const argv = process.argv.slice(2);
