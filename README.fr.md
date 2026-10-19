@@ -32,10 +32,6 @@
 
 </div>
 
-
-
-
-
 ---
 
 ## ✨ Pourquoi cet outil existe

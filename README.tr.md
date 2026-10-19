@@ -32,10 +32,6 @@
 
 </div>
 
-
-
-
-
 ---
 
 ## ✨ Bu neden var

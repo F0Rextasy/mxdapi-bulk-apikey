@@ -32,10 +32,6 @@
 
 </div>
 
-
-
-
-
 ---
 
 ## ✨ Por que isso existe
