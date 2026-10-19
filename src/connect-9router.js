@@ -4,7 +4,7 @@
 /**
  * Connect MXDAPI (模型岛) to a 9Router instance.
  *
- * MXDAPI (模型岛) serves an OpenAI-compatible endpoint (https://inference.mxdapi.global/v1), so a single
+ * MXDAPI (模型岛) serves an OpenAI-compatible endpoint (https://mxdapi.com/v1), so a single
  * provider-node carries every key: this registers one `openai-compatible` node
  * with prefix `mxdapi` and then one connection per API key, named
  * `mxdapi-001`, `mxdapi-002`, … Re-running it is idempotent (an existing node
@@ -13,7 +13,7 @@
  * Usage:
  *   node src/connect-9router.js \
  *     --base http://localhost:20128 --password 123456 \
- *     --api-key dahl_xxxx [--name "MXDAPI (模型岛)"] [--prefix mxdapi]
+ *     --api-key <key> [--name "MXDAPI (模型岛)"] [--prefix mxdapi]
  *
  *   node src/connect-9router.js                  # register every key in keys.txt
  *   node src/connect-9router.js --model <id>     # pin the connection's default model
@@ -24,7 +24,7 @@
  *   --api-key <key>    MXDAPI (模型岛) API key     (default: every key in keys.txt)
  *   --name <name>      provider-node name       (default MXDAPI (模型岛))
  *   --prefix <slug>    provider prefix in 9Router (default mxdapi)
- *   --base-url <url>   provider base URL        (default https://inference.mxdapi.global/v1)
+ *   --base-url <url>   provider base URL        (default https://mxdapi.com/v1)
  *   --model <id>       connection default model (default MiniMaxAI/MiniMax-M2.7)
  *
  * Zero dependencies. Node.js >= 18.
