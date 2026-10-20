@@ -87,8 +87,8 @@ Set the base URL in any agent or SDK (Cursor, OpenCode, Kilo Code, …) and pick
 # clone or fork this repository, then:
 cd mxdapi-bulk-apikey
 
-# 1) your proxy list, one per line (http://… or socks5://…)
-printf 'http://127.0.0.1:8080\n' > proxies.txt
+# 1) your proxy list, one per line (http://… or socks5://…) — optional
+printf 'http://127.0.0.1:8080\n' > proxies.txt   # optional — without it the tool runs direct
 
 # 2) go
 node src/launcher.js        # interactive
@@ -149,11 +149,15 @@ node src/cli.js --help
 
 | Environment variable | Default | Meaning |
 | --- | --- | --- |
-| `MXDAPI_PROXIES` | `proxies.txt` | pool file, one proxy per line |
+| `MXDAPI_PROXIES` | `proxies.txt` | pool file, one proxy per line — optional: without a pool the CLI connects directly |
 
 ## 🛰️ Behind a proxy
 
-Every request leaves through a proxy line from your pool; a dead line fails that attempt and the tool moves on. The panel rate-limits code sends per address, so pace the run (a ~30–60 s gap between accounts is plenty).
+**Optional — recommended at scale (per-IP limits, bans).** The tool works without a proxy too.
+
+- **With a pool:** pass `--exits <list>` (comma separated, e.g. `--exits http://127.0.0.1:8080,socks5://127.0.0.1:1080`) and every request leaves through one of those lines; a dead line fails that attempt and the tool moves on to the next one.
+- **Without a pool:** the CLI prints `running WITHOUT a proxy (direct)` and connects directly; sign-up, the token/key steps and the live chat check all run the same way.
+- The panel rate-limits code sends per address, so pace the run (a ~30–60 s gap between accounts is plenty).
 
 ## 📄 Files
 

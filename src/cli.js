@@ -2,6 +2,9 @@
 /**
  * Generic New-API mint — hosts: mxdapi.com, api.holdai.top, api.vveai.com
  * Contract measured 2026-10-18 (wave 14). Usage: node mint.js --host=mxdapi.com --model=...
+ *
+ * Requests go through your exit list when one is provided (--exits); with no
+ * exits the tool connects directly.
  */
 const fs = require('fs');
 const path = require('path');
@@ -35,7 +38,10 @@ const maskExit = (line) => String(line || 'direct').replace(/:[^:@/]+@/, ':***@'
 const HOST = one('host', 'mxdapi.com');
 const BASE = `https://${HOST}`;
 const MODEL = one('model', 'deepseek-chat');
-const EXITS = (one('exits', 'http://127.0.0.1:40000') || '')
+// Exits are OPTIONAL: `--exits a,b` routes every request through that list;
+// with no (or an empty) list the tool connects directly — `null` is the direct
+// sentinel and `reqOnce` then attaches no proxy agent at all.
+const EXITS = (one('exits', '') || '')
   .split(',')
   .map((s) => s.trim())
   .filter(Boolean);
@@ -48,6 +54,33 @@ let liveKeys = 0;
 // inbox mid-flight; only a message whose sender/subject carries this panel's
 // own brand is allowed to supply the code.
 const BRAND = new RegExp(one('brand', HOST.replace(/[.:]/g, '\\$&').replace(/^api\\?\./, '')), 'i');
+
+if (argv.includes('--help') || argv.includes('-h')) {
+  console.log(`mxdapi-bulk-apikey — one MXDAPI (模型岛) account per run, one key per plan step, every key chat-verified.
+
+  node src/cli.js --host=mxdapi.com --model=deepseek-v4.1-flash   mint (a key is kept only after a chat 200)
+  node src/cli.js --help
+
+  --host <name>     panel host                                        [mxdapi.com]
+  --model <id>      model of the default plan step                 [deepseek-chat]
+  --plan <json>     plan steps, one token+key each  [{"group":"","model":"<id>"}]
+  --exits <list>    comma-separated exit lines (http://host:port, socks5://…), optional
+  --preset <name>   turbo|balanced|safe — plan steps in flight
+  --conc N          plan steps in flight                                     [1]
+  --gap N           seconds between plan steps inside one worker             [0]
+  --code-wait MS    mailbox poll timeout                                [300000]
+  --brand <re>      sender/subject brand filter           [the panel's own name]
+  --tag <name>      account username prefix                        [gm14<stamp>]
+
+Requests go through your proxy list when one is provided (--exits).
+Without a pool the tool connects directly.`);
+  process.exit(0);
+}
+if (!EXITS.length) {
+  // No exits = DIRECT mode: a proxy is recommended at scale (per-IP limits,
+  // bans) but the tool works without one. `null` is the direct sentinel.
+  console.log('no exits given — running WITHOUT a proxy (direct). Pass --exits <list> to route through them.');
+}
 const DIR = path.join(__dirname, '..', '..', 'providers', HOST.replace(/^api\./, '').replace(/\./g, '-'));
 
 fs.mkdirSync(path.join(DIR, 'out'), { recursive: true });
@@ -64,7 +97,12 @@ const log = (m) => {
   fs.appendFileSync(LOG, line + '\n');
 };
 
-let currentExit = EXITS[0];
+let currentExit = EXITS[0] || null;
+
+/** Next exit line, if any: a single line (or direct mode) stays put. */
+function rotateExit() {
+  if (EXITS.length) currentExit = EXITS[(EXITS.indexOf(currentExit) + 1) % EXITS.length];
+}
 
 function reqOnce(pathname, { method = 'GET', body = null, headers = {}, timeoutMs = 45000, exit = currentExit } = {}) {
   const u = new URL(BASE + pathname);
@@ -86,7 +124,15 @@ function reqOnce(pathname, { method = 'GET', body = null, headers = {}, timeoutM
   }
   return new Promise((resolve, reject) => {
     const r = https.request(
-      { method, host: u.hostname, port: 443, path: u.pathname + u.search, agent: createAgent(parseProxy(exit)), headers: h },
+      {
+        method,
+        host: u.hostname,
+        port: 443,
+        path: u.pathname + u.search,
+        // `null` exit = direct: no proxy agent at all, the socket goes straight out.
+        agent: exit ? createAgent(parseProxy(exit)) : undefined,
+        headers: h,
+      },
       (res) => {
         let text = '';
         res.setEncoding('utf8');
@@ -115,7 +161,7 @@ async function req(pathname, opts = {}, tries = 5) {
       r = await reqOnce(pathname, opts);
     } catch (e) {
       log(`net ${e.message} on ${pathname}, rotate exit`);
-      currentExit = EXITS[(EXITS.indexOf(currentExit) + 1) % EXITS.length];
+      rotateExit();
       await sleep(3000);
       continue;
     }
@@ -157,7 +203,7 @@ async function waitCode(box, startSec, { timeoutMs = CODE_WAIT_MS } = {}) {
     } catch (e) {
       lastErr = e.message;
       log(`mailbox read failed (${e.message}), rotating exit`);
-      currentExit = EXITS[(EXITS.indexOf(currentExit) + 1) % EXITS.length];
+      rotateExit();
       await sleep(5000);
       continue;
     }
@@ -216,11 +262,11 @@ function saveRec(rec) {
 }
 
 async function main() {
-  log(`mint start host=${HOST} model=${MODEL} exits=${EXITS.length} plan=${PLAN.length} conc=${PLAN_CONC}`);
+  log(`mint start host=${HOST} model=${MODEL} exits=${EXITS.length || 'direct'} plan=${PLAN.length} conc=${PLAN_CONC}`);
   console.log(`… #1 başladı (${maskExit(currentExit)})`);
   const tag = one('tag', `gm14${Date.now().toString(36).slice(-5)}`) + (one('tag') ? '' : '');
   const pass = `Pw${randHex(5)}aB1`;
-  const rec = { host: HOST, username: tag, password: pass, at: nowIso(), status: 'start', exit: currentExit };
+  const rec = { host: HOST, username: tag, password: pass, at: nowIso(), status: 'start', exit: currentExit || 'direct' };
 
   let mb = null;
   for (let i = 0; i < 12; i++) {
