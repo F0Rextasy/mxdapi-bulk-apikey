@@ -105,6 +105,11 @@ The launcher asks for the proxy list, count and verification model, remembers th
 
 ## ✅ Verified working — every key is tested
 
+> **Quality gates.** Every key here passed a live `chat-200` before it was written to `keys.txt`
+> (dead keys are never shipped). Router combos follow the same rule at the model level: an entry is
+> added **only if the model answers `chat-200` and can call tools** — a model without tool support,
+> a dead key or a dead provider is dropped instead of added. Works with **9Router and OmniRoute**.
+
 | Check | Result |
 | --- | --- |
 | `GET /api/verification?email=<gmail>` | **200** — sends a 6-hex code (dotless gmail passes; aliases rejected) |
@@ -178,7 +183,6 @@ node src/connect-9router.js
 ```
 
 Defaults: `--base http://localhost:20128`, `--password 123456`, `--name "MXDAPI"`, `--prefix mxdapi`, `--base-url https://mxdapi.com/v1`. Models are then served as `mxdapi/<model id>` and load-balanced across every key.
-
 
 ## 🔌 Connect to OmniRoute
 

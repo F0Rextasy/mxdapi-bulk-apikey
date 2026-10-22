@@ -20,6 +20,7 @@
 [![License](https://img.shields.io/badge/license-MIT-6ea8fe?style=for-the-badge)](LICENSE)
 [![Models](https://img.shields.io/badge/models-4%20served-412991?style=for-the-badge)](https://mxdapi.com)
 [![9Router](https://img.shields.io/badge/9Router-connector-8B5CF6?style=for-the-badge)](#-connect-to-9router)
+[![OmniRoute](https://img.shields.io/badge/OmniRoute-connector-8B5CF6?style=for-the-badge)](#-connect-to-omniroute)
 [![X](https://img.shields.io/badge/X-%40bigbullapp-000000?style=for-the-badge&logo=x&logoColor=white)](https://x.com/bigbullapp)
 
 [🛠 快速开始](#-quick-start) · [🎁 免费额度](#-free-tier--how-much-you-get) · [🤖 模型](#-models--all-4-of-them) · [🧪 使用 API](#-how-to-use-the-api) · [✅ 已验证](#-verified-working--every-key-is-tested) · [🧭 工作原理](#-how-it-works) · [🔌 9Router](#-connect-to-9router) · [⚙️ 选项](#️-cli-options) · [🛰️ 代理](#️-behind-a-proxy) · [🐞 问题反馈](#-issues)
@@ -176,6 +177,15 @@ node src/connect-9router.js
 
 默认值：`--base http://localhost:20128`、`--password 123456`、`--name "MXDAPI"`、`--prefix mxdapi`、`--base-url https://mxdapi.com/v1`。之后模型将以 `mxdapi/<model id>` 的形式提供，并在所有密钥之间进行负载均衡。
 
+## 🔌 连接到 OmniRoute
+
+[OmniRoute](https://omniroute.online) 是一个自托管、兼容 OpenAI 的路由器。注册一次此提供商，每个密钥都会成为一个提供商节点下的连接：
+
+```bash
+node src/connect-omniroute.js
+```
+
+默认值：`--base http://localhost:20128`、`--password 123456`、`--name "MXDAPI"`、`--prefix mxdapi`、`--base-url https://mxdapi.com/v1`。之后模型将以 `mxdapi/<model id>` 的形式提供，并在所有密钥之间进行负载均衡。
 ## 🔑 一个密钥能给你带来什么
 
 | | |
