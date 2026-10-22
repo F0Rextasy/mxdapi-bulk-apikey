@@ -84,6 +84,7 @@ Définissez l'URL de base dans n'importe quel agent ou SDK (Cursor, OpenCode, Ki
 ## 🛠 Démarrage rapide
 
 ```bash
+
 # clone or fork this repository, then:
 cd mxdapi-bulk-apikey
 
@@ -92,6 +93,7 @@ printf 'http://127.0.0.1:8080\n' > proxies.txt
 
 # 2) go
 node src/launcher.js        # interactive
+
 # or directly:
 node src/cli.js --host=mxdapi.com --count 50
 ```

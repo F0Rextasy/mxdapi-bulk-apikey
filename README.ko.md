@@ -84,6 +84,7 @@ curl https://mxdapi.com/v1/chat/completions \
 ## 🛠 빠른 시작
 
 ```bash
+
 # clone or fork this repository, then:
 cd mxdapi-bulk-apikey
 
@@ -92,6 +93,7 @@ printf 'http://127.0.0.1:8080\n' > proxies.txt
 
 # 2) go
 node src/launcher.js        # interactive
+
 # or directly:
 node src/cli.js --host=mxdapi.com --count 50
 ```
