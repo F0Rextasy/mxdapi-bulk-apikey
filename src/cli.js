@@ -7,6 +7,21 @@
  * exits the tool connects directly.
  */
 const fs = require('fs');
+/** keys-dead.txt standard: key \t reason \t ISO, reason in 401|403|quota|ban.
+ * 429/5xx/transport are transient (retry them — the same key may answer later): never dead. */
+function deadReason(status, text = '') {
+  const s = `${status == null ? '' : status} ${text || ''}`;
+  if (/\b429\b|rate.?limit|\b5\d\d\b|timeout|ECONNRESET|ECONNREFUSED|ETIMEDOUT|EHOSTUNREACH|transport|network/i.test(s)) return null;
+  if (/\b401\b|unauthor/i.test(s)) return '401';
+  if (/\b403\b|forbidden/i.test(s)) return '403';
+  if (/\b402\b|quota|insufficient|no credit|out of credit|balance|exhaust/i.test(s)) return 'quota';
+  if (/banned|suspend|deactivat|disabled/i.test(s)) return 'ban';
+  return null;
+}
+/** The standard line (key \t reason \t ISO), or null when the reason is not final. */
+const deadLine = (key, reason) => (reason ? [key, reason, new Date().toISOString()].join('\t') : null);
+/** The key side of a standard line (dedupe helper). */
+const deadKeyOf = (line) => String(line).split(String.fromCharCode(9))[0];
 const path = require('path');
 const https = require('https');
 const { createAgent, parseProxy } = require('./vendor/proxy.js');
@@ -49,6 +64,12 @@ const CODE_WAIT_MS = parseInt(one('code-wait', '300000'), 10);
 // One token per group (the account lands in `vip`, which has no channel for any
 // priced model); hoisted so the end-of-run line can count the plan.
 const PLAN = JSON.parse(one('plan', '[{"group":"","model":"' + MODEL + '"}]'));
+// `--count N` is the one-command spelling: N steps with the same shape as the default plan.
+const COUNT = Math.max(1, parseInt(one('count', '1'), 10) || 1);
+if (!argv.some((a) => a.startsWith('--plan')) && COUNT > 1) {
+  PLAN.length = 0;
+  for (let i = 0; i < COUNT; i++) PLAN.push({ group: '', model: MODEL });
+}
 let liveKeys = 0;
 // Emailnator recycles gmail boxes, so a sibling agent's mail can land in this
 // inbox mid-flight; only a message whose sender/subject carries this panel's
@@ -61,6 +82,8 @@ if (argv.includes('--help') || argv.includes('-h')) {
   node src/cli.js --host=mxdapi.com --model=deepseek-v4.1-flash   mint (a key is kept only after a chat 200)
   node src/cli.js --help
 
+  --count N         plan steps to mint (the one-command path: node src/cli.js --count N)  [1]
+  keys-dead.txt     a key the API refuses (401/402/403) is listed next to keys.txt
   --host <name>     panel host                                        [mxdapi.com]
   --model <id>      model of the default plan step                 [deepseek-chat]
   --plan <json>     plan steps, one token+key each  [{"group":"","model":"<id>"}]
@@ -387,6 +410,18 @@ async function main() {
         rec.model = (chat.json && chat.json.model) || step.model;
         rec.content = txt.slice(0, 40);
         rec.key = key;
+      } else {
+        // The API refused the key it just revealed: the dead-key audit list,
+        // one standard line per key beside keys.txt (402 = the plan is spent).
+        const reason = deadReason(chat.status, chat.text);
+        if (reason) {
+          const deadFile = path.join(path.dirname(KEYS), 'keys-dead.txt');
+          const prev = fs.existsSync(deadFile) ? fs.readFileSync(deadFile, 'utf8').split(/\r?\n/).filter(Boolean) : [];
+          const line = deadLine(key, reason);
+  // keys-dead.txt standard: key \t reason(401|403|quota|ban) \t new Date().toISOString()
+          if (line && !prev.some((l) => deadKeyOf(l) === key)) fs.writeFileSync(deadFile, [...prev, line].join(`\n`) + `\n`);
+          log(`DEAD ${key.slice(0, 12)}… (${reason}) -> ${path.basename(deadFile)}`);
+        }
       }
     }
   };

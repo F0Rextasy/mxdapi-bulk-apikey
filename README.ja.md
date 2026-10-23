@@ -1,6 +1,7 @@
 <div align="center">
 
 ```
+
 ███╗   ███╗██╗  ██╗██████╗
 ████╗ ████║╚██╗██╔╝██╔══██╗
 ██╔████╔██║ ╚███╔╝ ██║  ██║
@@ -23,7 +24,7 @@
 [![OmniRoute](https://img.shields.io/badge/OmniRoute-connector-8B5CF6?style=for-the-badge)](#-connect-to-omniroute)
 [![X](https://img.shields.io/badge/X-%40bigbullapp-000000?style=for-the-badge&logo=x&logoColor=white)](https://x.com/bigbullapp)
 
-[🛠 クイックスタート](#-quick-start) · [🎁 無料枠](#-free-tier--how-much-you-get) · [🤖 モデル](#-models--all-4-of-them) · [🧪 API の使い方](#-how-to-use-the-api) · [✅ 検証済み](#-verified-working--every-key-is-tested) · [🧭 仕組み](#-how-it-works) · [🔌 9Router](#-connect-to-9router) · [⚙️ オプション](#️-cli-options) · [🛰️ プロキシ](#️-behind-a-proxy) · [🐞 問題報告](#-issues)
+[🛠 クイックスタート](#-quick-start) · [🎁 無料枠](#-free-tier--how-much-you-get) · [🤖 モデル](#-models--all-4-of-them) · [🧪 API の使い方](#-how-to-use-the-api) · [✅ 検証済み](#-verified-working--every-key-is-tested) · [🧭 仕組み](#-how-it-works) · [🔌 9Router](#-connect-to-9router) · [🔌 OmniRoute](#-connect-to-omniroute) · [⚙️ オプション](#️-cli-options) · [🛰️ プロキシ](#️-behind-a-proxy) · [🐞 問題報告](#-issues)
 
 </div>
 
@@ -186,6 +187,7 @@ node src/connect-omniroute.js
 ```
 
 デフォルト: `--base http://localhost:20128`、`--password 123456`、`--name "MXDAPI"`、`--prefix mxdapi`、`--base-url https://mxdapi.com/v1`。モデルは `mxdapi/<model id>` として提供され、すべてのキー間で負荷分散されます。
+
 ## 🔑 1 つのキーで得られるもの
 
 | | |
